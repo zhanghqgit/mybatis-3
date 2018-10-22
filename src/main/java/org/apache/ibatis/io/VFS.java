@@ -29,7 +29,7 @@ import org.apache.ibatis.logging.LogFactory;
 
 /**
  * Provides a very simple API for accessing resources within an application server.
- * 
+ * 获取应用容器内的资源文件
  * @author Ben Gunter
  */
 public abstract class VFS {

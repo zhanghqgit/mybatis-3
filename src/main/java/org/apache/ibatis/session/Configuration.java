@@ -96,7 +96,10 @@ import org.apache.ibatis.type.TypeHandlerRegistry;
  */
 public class Configuration {
 
-  protected Environment environment;
+    /**
+     * MyBatis 可以配置成适应多种环境，这种机制有助于将 SQL 映射应用于多种数据库之中
+     */
+    protected Environment environment;
 
   /**
    * 允许在嵌套语句中使用分页（RowBounds）。如果允许使用则设置为 false。
@@ -200,9 +203,17 @@ public class Configuration {
    * 与 {@link #autoMappingBehavior} 配合使用
    */
   protected AutoMappingUnknownColumnBehavior autoMappingUnknownColumnBehavior = AutoMappingUnknownColumnBehavior.NONE;
-
+    /**
+     * 自定义参数
+     */
   protected Properties variables = new Properties();
+
   protected ReflectorFactory reflectorFactory = new DefaultReflectorFactory();
+    /**
+     * MyBatis 每次创建结果对象的新实例时，它都会使用一个对象工厂（ObjectFactory）实例来完成。
+     * 默认的对象工厂需要做的仅仅是实例化目标类，要么通过默认构造方法，要么在参数映射存在的时候通过参数构造方法来实例化。
+     * 如果想覆盖对象工厂的默认行为，则可以通过创建自己的对象工厂来实现
+     */
   protected ObjectFactory objectFactory = new DefaultObjectFactory();
   protected ObjectWrapperFactory objectWrapperFactory = new DefaultObjectWrapperFactory();
 
@@ -215,6 +226,11 @@ public class Configuration {
    */
   protected ProxyFactory proxyFactory = new JavassistProxyFactory(); // #224 Using internal Javassist instead of OGNL
 
+    /**
+     * MyBatis 可以根据不同的数据库厂商执行不同的语句，这种多厂商的支持是基于映射语句中的 databaseId 属性。
+     * MyBatis 会加载不带 databaseId 属性和带有匹配当前数据库 databaseId 属性的所有语句。
+     * 如果同时找到带有 databaseId 和不带 databaseId 的相同语句，则后者会被舍弃
+     */
   protected String databaseId;
   /**
    * Configuration factory class.
@@ -226,11 +242,29 @@ public class Configuration {
    */
   protected Class<?> configurationFactory;
 
+    /**
+     * Mapper接口注册
+     */
   protected final MapperRegistry mapperRegistry = new MapperRegistry(this);
+    /**
+     * MyBatis 允许你在已映射语句执行过程中的某一点进行拦截调用。默认情况下，MyBatis 允许使用插件来拦截的方法调用包括：
+     *
+     * Executor (update, query, flushStatements, commit, rollback, getTransaction, close, isClosed)
+     * ParameterHandler (getParameterObject, setParameters)
+     * ResultSetHandler (handleResultSets, handleOutputParameters)
+     * StatementHandler (prepare, parameterize, batch, update, query)
+     * 通过配置plugins节点,实现类实现 org.apache.ibatis.plugin.Interceptor即可
+     */
   protected final InterceptorChain interceptorChain = new InterceptorChain();
   /**
    * 指定 Enum 使用的默认 TypeHandler defaultEnumTypeHandler
    * {@link #setDefaultEnumTypeHandler(Class)}
+   *
+   * 无论是 MyBatis 在预处理语句（PreparedStatement）中设置一个参数时，还是从结果集中取出一个值时， 都会用类型处理器将获取的值以合适的方式转换成 Java 类型
+   *
+   * 处理参数映射至数据库的类型映射以及从结果集转换至模型的类型的映射
+   * 因此,SQL中的参数和ResultMap中应指明jdbcType
+   * SQL中的参数应指定javaType
    */
   protected final TypeHandlerRegistry typeHandlerRegistry = new TypeHandlerRegistry();
   /**
@@ -244,14 +278,33 @@ public class Configuration {
    * {@link #setDefaultScriptingLanguage(Class)}
    */
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
-
+    /**
+     * SQL语句映射
+     */
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<>("Mapped Statements collection");
+    /**
+     * 结果缓存
+     */
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
+    /**
+     * resultMap
+     * 节点<resultMap></resultMap>
+     */
   protected final Map<String, ResultMap> resultMaps = new StrictMap<>("Result Maps collection");
+    /**
+     * parameterMap
+     * 节点 <parameterMap></parameterMap>
+     */
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
+    /**
+     * 加载的资源配置文件
+     */
   protected final Set<String> loadedResources = new HashSet<>();
+    /**
+     * 节点<sql></sql>
+     */
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();

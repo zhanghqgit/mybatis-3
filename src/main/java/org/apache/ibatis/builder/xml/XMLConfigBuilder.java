@@ -48,6 +48,11 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 
 /**
+ * 主要用来构造 {@link Configuration} ,根据传入的输入流及相关配置,解析出 {@link Configuration}
+ * 此处来定义解析配置文件中的哪些节点
+ *
+ * 无需关系文档如何解析,只是告诉需要解析文档中的哪些节点,具体如何解析无需关系,已全部底层封装
+ *
  * @author Clinton Begin
  * @author Kazuki Shimizu
  */

@@ -244,6 +244,7 @@ public class Resources {
    */
   public static Properties getUrlAsProperties(String urlString) throws IOException {
     Properties props = new Properties();
+    //自动关闭资源
     try (InputStream in = getUrlAsStream(urlString)) {
       props.load(in);
     }

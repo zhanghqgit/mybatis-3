@@ -25,6 +25,7 @@ import org.apache.ibatis.builder.BuilderException;
 import org.apache.ibatis.datasource.DataSourceFactory;
 import org.apache.ibatis.executor.ErrorContext;
 import org.apache.ibatis.executor.loader.ProxyFactory;
+import org.apache.ibatis.io.ClassLoaderWrapper;
 import org.apache.ibatis.io.Resources;
 import org.apache.ibatis.io.VFS;
 import org.apache.ibatis.logging.Log;
@@ -105,9 +106,51 @@ public class XMLConfigBuilder extends BaseBuilder {
     return configuration;
   }
 
+  /**
+   * mybatis-config.xml
+   * <configuration>
+   *     <properties>
+   *         <property></property>
+   *     </properties>
+   *     <settings>
+   *          <setting></setting>
+   *     </settings>
+   *     <typeAliases>
+   *         <typeAlias></typeAlias>
+   *     </typeAliases>
+   *     <typeHandlers>
+   *         <typeHandler></typeHandler>
+   *     </typeHandlers>
+   *     <objectFactory></objectFactory>
+   *     <objectWrapperFactory></objectWrapperFactory>
+   *     <reflectorFactory></reflectorFactory>
+   *     <plugins>
+   *         <plugin></plugin>
+   *     </plugins>
+   *     <environments>
+   *         <environment>
+   *             <transactionManager></transactionManager>
+   *             <dataSource></dataSource>
+   *         </environment>
+   *     </environments>
+   *     <databaseIdProvider>
+   *         <property></property>
+   *     </databaseIdProvider>
+   *     <mappers>
+   *         <mapper></mapper>
+   *         or
+   *         <package></package>
+   *     </mappers>
+   * </configuration>
+   * @param root
+   */
   private void parseConfiguration(XNode root) {
     try {
       //issue #117 read properties first
+      /**
+       * properties节点中尽量不要使用占位符,其无法引用自身property节点中设置的属性配置，仅能获取到java中设置的属性配置
+       * 此处配置的属性值可被整个配置文件使用
+       */
       propertiesElement(root.evalNode("properties"));
       Properties settings = settingsAsProperties(root.evalNode("settings"));
       loadCustomVfs(settings);
@@ -218,6 +261,25 @@ public class XMLConfigBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 处理properties标签，里面的内容可被外部传入的属性替换，后续的配置均可引入此处解析完毕的属性配置
+   * 这些属性都是可外部配置且可动态替换的，既可以在典型的 Java 属性文件中配置，亦可通过 properties 元素的子元素来传递
+   * 然后其中的属性就可以在整个配置文件中被用来替换需要动态配置的属性值
+   * 如果属性在不只一个地方进行了配置，那么 MyBatis 将按照下面的顺序来加载：
+   *
+   * 在 properties 元素体内指定的属性首先被读取。
+   * 然后根据 properties 元素中的 resource 属性读取类路径下属性文件或根据 url 属性指定的路径读取属性文件，并覆盖已读取的同名属性。
+   * 最后读取作为方法参数传递的属性，并覆盖已读取的同名属性。
+   * 因此，通过方法参数传递的属性具有最高优先级，resource/url 属性中指定的配置文件次之，最低优先级的是 properties 属性中指定的属性
+   *
+   * 从 MyBatis 3.4.2 开始，你可以为占位符指定一个默认值
+   * 这个特性默认是关闭的。如果你想为占位符指定一个默认值， 你应该添加一个指定的属性来开启这个特性
+   * <property name="org.apache.ibatis.parsing.PropertyParser.enable-default-value" value="true"/>
+   * 如果你已经使用 ":" 作为属性的键（如：db:username） ，或者你已经在 SQL 定义中使用 OGNL 表达式的三元运算符（如： ${tableName != null ? tableName : 'global_constants'}），你应该通过设置特定的属性来修改分隔键名和默认值的字符
+   * <property name="org.apache.ibatis.parsing.PropertyParser.default-value-separator" value="?:"/>
+   * @param context
+   * @throws Exception
+   */
   private void propertiesElement(XNode context) throws Exception {
     if (context != null) {
       Properties defaults = context.getChildrenAsProperties();
@@ -227,14 +289,22 @@ public class XMLConfigBuilder extends BaseBuilder {
         throw new BuilderException("The properties element cannot specify both a URL and a resource based property file reference.  Please specify one or the other.");
       }
       if (resource != null) {
+        /**
+         *  当前类路径下加载资源,可能会抛出异常. ClassLoader顺序
+         * @see ClassLoaderWrapper#getClassLoaders(java.lang.ClassLoader)
+         * @see java.lang.ClassLoader#getResourceAsStream(java.lang.String)
+         * resource应指定properties文件位置
+         */
         defaults.putAll(Resources.getResourceAsProperties(resource));
       } else if (url != null) {
+        //配置一个properties文件的链接
         defaults.putAll(Resources.getUrlAsProperties(url));
       }
       Properties vars = configuration.getVariables();
       if (vars != null) {
         defaults.putAll(vars);
       }
+      // parser的更新后,所有的Node引用的variables也会更新， 所有的XNode均由parser产生，生成时会同步传入variables
       parser.setVariables(defaults);
       configuration.setVariables(defaults);
     }

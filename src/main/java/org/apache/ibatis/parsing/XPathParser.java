@@ -48,6 +48,16 @@ public class XPathParser {
   private final Document document;
   private boolean validation;
   private EntityResolver entityResolver;
+  /**
+   * 替换值  ${xyz}
+   * Double 不可使用替换表达式
+   * Float  可使用替换表达式
+   * Long 可使用替换表达式
+   * Integer 可使用替换表达式
+   * String 可使用替换表达式
+   * Boolean 可使用替换表达式
+   * Short 可使用替换表达式
+   */
   private Properties variables;
   private XPath xpath;
 

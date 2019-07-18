@@ -43,6 +43,9 @@ public class XNode {
     this.node = node;
     this.name = node.getNodeName();
     this.variables = variables;
+    /**
+     * 解析节点的所有属性,属性值中的占位符可被解析
+     */
     this.attributes = parseAttributes(node);
     this.body = parseBody(node);
   }
@@ -301,6 +304,10 @@ public class XNode {
     return children;
   }
 
+  /**
+   * <property name="" value=""></property>
+   * @return
+   */
   public Properties getChildrenAsProperties() {
     Properties properties = new Properties();
     for (XNode child : getChildren()) {

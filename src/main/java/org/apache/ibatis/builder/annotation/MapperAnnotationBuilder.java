@@ -125,15 +125,21 @@ public class MapperAnnotationBuilder {
   public void parse() {
     String resource = type.toString();
     if (!configuration.isResourceLoaded(resource)) {
+      //优先加载xml配置文件 文件名为 类全限定类.xml
       loadXmlResource();
+      //记录该资源已加载
       configuration.addLoadedResource(resource);
       assistant.setCurrentNamespace(type.getName());
+      // 处理缓存注解  org.apache.ibatis.annotations.CacheNamespace
       parseCache();
+      // 处理缓存注解 org.apache.ibatis.annotations.CacheNamespaceRef
       parseCacheRef();
       Method[] methods = type.getMethods();
       for (Method method : methods) {
         try {
           // issue #237
+          // 桥接方法 泛型擦除
+          // https://www.zhihu.com/question/54895701
           if (!method.isBridge()) {
             parseStatement(method);
           }
@@ -142,6 +148,7 @@ public class MapperAnnotationBuilder {
         }
       }
     }
+    // 再处理一遍解析异常的方法
     parsePendingMethods();
   }
 
@@ -167,10 +174,12 @@ public class MapperAnnotationBuilder {
     if (!configuration.isResourceLoaded("namespace:" + type.getName())) {
       String xmlResource = type.getName().replace('.', '/') + ".xml";
       // #1347
+      // 类的加载器加载
       InputStream inputStream = type.getResourceAsStream("/" + xmlResource);
       if (inputStream == null) {
         // Search XML mapper that is not in the module but in the classpath. 
         try {
+          // classpath加载
           inputStream = Resources.getResourceAsStream(type.getClassLoader(), xmlResource);
         } catch (IOException e2) {
           // ignore, resource is not required

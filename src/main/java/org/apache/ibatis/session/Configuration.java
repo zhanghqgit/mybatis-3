@@ -236,7 +236,8 @@ public class Configuration {
    * Configuration factory class.
    * Used to create Configuration for loading deserialized unread properties.
    *
-   * 指定一个提供 Configuration 实例的类。 这个被返回的 Configuration 实例用来加载被反序列化对象的延迟加载属性值。 这个类必须包含一个签名为static Configuration getConfiguration() 的方法。（新增于 3.2.3）
+   * 指定一个提供 Configuration 实例的类。 这个被返回的 Configuration 实例用来加载被反序列化对象的延迟加载属性值。
+   * 这个类必须包含一个签名为static Configuration getConfiguration() 的方法。（新增于 3.2.3）
    *
    * @see <a href='https://code.google.com/p/mybatis/issues/detail?id=300'>Issue 300 (google code)</a>
    */
@@ -275,7 +276,11 @@ public class Configuration {
   protected final TypeAliasRegistry typeAliasRegistry = new TypeAliasRegistry();
   /**
    * 指定动态 SQL 生成的默认语言。 defaultScriptingLanguage
+   * @see XMLLanguageDriver 默认
+   * @see RawLanguageDriver
    * {@link #setDefaultScriptingLanguage(Class)}
+   * 解析Mapper接口的注解内的语言
+   * @see org.apache.ibatis.annotations.Lang
    */
   protected final LanguageDriverRegistry languageRegistry = new LanguageDriverRegistry();
     /**
@@ -299,7 +304,7 @@ public class Configuration {
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
     /**
-     * 加载的资源配置文件
+     * 已加载的资源配置文件 通过接口加载、通过xml文件加载
      */
   protected final Set<String> loadedResources = new HashSet<>();
     /**

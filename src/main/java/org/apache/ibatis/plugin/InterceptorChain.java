@@ -36,7 +36,11 @@ public class InterceptorChain {
   public void addInterceptor(Interceptor interceptor) {
     interceptors.add(interceptor);
   }
-  
+
+  /**
+   * 返回一个不可更改的集合
+   * @return
+   */
   public List<Interceptor> getInterceptors() {
     return Collections.unmodifiableList(interceptors);
   }

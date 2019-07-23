@@ -16,6 +16,7 @@
 package org.apache.ibatis.builder;
 
 /**
+ * 针对于解析时信息不完整,例如相关引用查询不到
  * @author Eduardo Macarron
  */
 public class IncompleteElementException extends BuilderException {

@@ -87,6 +87,19 @@ public class XMLMapperBuilder extends BaseBuilder {
     this.resource = resource;
   }
 
+  /**
+   * <mapper>
+   *     <cache />
+   *     <cache-ref />
+   *     <parameterMap></parameterMap>
+   *     <resultMap></resultMap>
+   *     <sql></sql>
+   *     <select></select>
+   *     <insert></insert>
+   *     <update></update>
+   *     <delete></delete>
+   * </mapper>
+   */
   public void parse() {
     if (!configuration.isResourceLoaded(resource)) {
       configurationElement(parser.evalNode("/mapper"));

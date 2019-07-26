@@ -288,7 +288,8 @@ public class Configuration {
      */
   protected final Map<String, MappedStatement> mappedStatements = new StrictMap<>("Mapped Statements collection");
     /**
-     * 结果缓存
+     * 所有的缓存配置
+     * key  命名空间  value 缓存配置
      */
   protected final Map<String, Cache> caches = new StrictMap<>("Caches collection");
     /**
@@ -301,6 +302,9 @@ public class Configuration {
      * 节点 <parameterMap></parameterMap>
      */
   protected final Map<String, ParameterMap> parameterMaps = new StrictMap<>("Parameter Maps collection");
+  /**
+   * 主键生成器
+   */
   protected final Map<String, KeyGenerator> keyGenerators = new StrictMap<>("Key Generators collection");
 
     /**
@@ -312,15 +316,26 @@ public class Configuration {
      */
   protected final Map<String, XNode> sqlFragments = new StrictMap<>("XML fragments parsed from previous mappers");
 
+  /**
+   * 暂存未能正确解析的语句
+   */
   protected final Collection<XMLStatementBuilder> incompleteStatements = new LinkedList<>();
+  /**
+   * 暂存未能正确解析的缓存引用
+   */
   protected final Collection<CacheRefResolver> incompleteCacheRefs = new LinkedList<>();
+  /**
+   * 暂存未能正确解析的结果集映射引用
+   */
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();
   protected final Collection<MethodResolver> incompleteMethods = new LinkedList<>();
 
-  /*
+  /**
    * A map holds cache-ref relationship. The key is the namespace that
    * references a cache bound to another namespace and the value is the
    * namespace which the actual cache is bound to.
+   * 所有缓存引用的关系映射
+   * key -> value 命名空间key引用命名空间value的缓存
    */
   protected final Map<String, String> cacheRefMap = new HashMap<>();
 
@@ -330,19 +345,24 @@ public class Configuration {
   }
 
   public Configuration() {
+    // 事务管理工厂类型
     typeAliasRegistry.registerAlias("JDBC", JdbcTransactionFactory.class);
     typeAliasRegistry.registerAlias("MANAGED", ManagedTransactionFactory.class);
 
+    // 连接池工厂类型
     typeAliasRegistry.registerAlias("JNDI", JndiDataSourceFactory.class);
     typeAliasRegistry.registerAlias("POOLED", PooledDataSourceFactory.class);
     typeAliasRegistry.registerAlias("UNPOOLED", UnpooledDataSourceFactory.class);
 
+    // 缓存实现  默认实现
     typeAliasRegistry.registerAlias("PERPETUAL", PerpetualCache.class);
+    // 缓存策略
     typeAliasRegistry.registerAlias("FIFO", FifoCache.class);
     typeAliasRegistry.registerAlias("LRU", LruCache.class);
     typeAliasRegistry.registerAlias("SOFT", SoftCache.class);
     typeAliasRegistry.registerAlias("WEAK", WeakCache.class);
 
+    // DataBaseId
     typeAliasRegistry.registerAlias("DB_VENDOR", VendorDatabaseIdProvider.class);
 
     typeAliasRegistry.registerAlias("XML", XMLLanguageDriver.class);
@@ -1031,9 +1051,11 @@ public class Configuration {
       }
       if (key.contains(".")) {
         final String shortKey = getShortName(key);
+        // 短名不存在, 放入一个短名的缓存关系
         if (super.get(shortKey) == null) {
           super.put(shortKey, value);
         } else {
+          // 若短名存在，则覆盖掉，标识为此短名不可使用, 此时会存在两个短名一样的缓存配置,当使用短名引用时,会引起混乱,get时也会抛出异常
           super.put(shortKey, (V) new Ambiguity(shortKey));
         }
       }

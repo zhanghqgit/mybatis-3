@@ -25,6 +25,7 @@ import org.apache.ibatis.cache.Cache;
 import org.apache.ibatis.cache.CacheException;
 
 /**
+ * 单一线程填充缓存，后续其他线程等待填充线程完成，而不用缓存穿透去查询数据库
  * Simple blocking decorator 
  * 
  * Simple and inefficient version of EhCache's BlockingCache decorator.

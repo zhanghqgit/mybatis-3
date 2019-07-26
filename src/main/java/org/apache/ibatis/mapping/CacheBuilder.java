@@ -38,13 +38,37 @@ import org.apache.ibatis.reflection.SystemMetaObject;
  * @author Clinton Begin
  */
 public class CacheBuilder {
+  /**
+   * 缓存全局唯一标识
+   */
   private final String id;
+  /**
+   * 缓存实现类
+   */
   private Class<? extends Cache> implementation;
+  /**
+   * 缓存装饰
+   */
   private final List<Class<? extends Cache>> decorators;
+  /**
+   * 缓存大小
+   */
   private Integer size;
+  /**
+   * 刷新间隔
+   */
   private Long clearInterval;
+  /**
+   * 可读写
+   */
   private boolean readWrite;
+  /**
+   * 自定义属性
+   */
   private Properties properties;
+  /**
+   * 阻塞
+   */
   private boolean blocking;
 
   public CacheBuilder(String id) {
@@ -89,6 +113,10 @@ public class CacheBuilder {
     return this;
   }
 
+  /**
+   * 内置的cache使用装饰器设计模式实现 组合
+   * @return
+   */
   public Cache build() {
     setDefaultImplementations();
     Cache cache = newBaseCacheInstance(implementation, id);

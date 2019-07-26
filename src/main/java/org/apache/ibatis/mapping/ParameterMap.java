@@ -46,7 +46,7 @@ public class ParameterMap {
     }
 
     public ParameterMap build() {
-      //lock down collections
+      //lock down collections 无法被修改
       parameterMap.parameterMappings = Collections.unmodifiableList(parameterMap.parameterMappings);
       return parameterMap;
     }

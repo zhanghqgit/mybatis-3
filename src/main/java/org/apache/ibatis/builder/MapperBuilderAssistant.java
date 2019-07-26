@@ -50,13 +50,23 @@ import org.apache.ibatis.type.JdbcType;
 import org.apache.ibatis.type.TypeHandler;
 
 /**
+ * Mapper解析助手
  * @author Clinton Begin
  */
 public class MapperBuilderAssistant extends BaseBuilder {
 
+  /**
+   * mapper解析命名空间
+   */
   private String currentNamespace;
+  /**
+   * 资源路径
+   */
   private final String resource;
   private Cache currentCache;
+  /**
+   * 标志缓存引用是否已正确处理 true 未能处理 false 已处理
+   */
   private boolean unresolvedCacheRef; // issue #676
 
   public MapperBuilderAssistant(Configuration configuration, String resource) {
@@ -103,6 +113,11 @@ public class MapperBuilderAssistant extends BaseBuilder {
     return currentNamespace + "." + base;
   }
 
+  /**
+   * 处理缓存引用
+   * @param namespace
+   * @return
+   */
   public Cache useCacheRef(String namespace) {
     if (namespace == null) {
       throw new BuilderException("cache-ref element requires a namespace attribute.");
@@ -110,6 +125,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
     try {
       unresolvedCacheRef = true;
       Cache cache = configuration.getCache(namespace);
+      // 此处不会返回null,内部会抛出 IllegalArgumentException
       if (cache == null) {
         throw new IncompleteElementException("No cache for namespace '" + namespace + "' could be found.");
       }
@@ -128,6 +144,7 @@ public class MapperBuilderAssistant extends BaseBuilder {
       boolean readWrite,
       boolean blocking,
       Properties props) {
+    // 缓存 命名空间， 其他mapper可使用此命名空间进行缓存引用，命名空间在全局是唯一的
     Cache cache = new CacheBuilder(currentNamespace)
         .implementation(valueOrDefault(typeClass, PerpetualCache.class))
         .addDecorator(valueOrDefault(evictionClass, LruCache.class))

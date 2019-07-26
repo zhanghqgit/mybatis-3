@@ -123,17 +123,43 @@ public class XMLMapperBuilder extends BaseBuilder {
         throw new BuilderException("Mapper's namespace cannot be empty");
       }
       builderAssistant.setCurrentNamespace(namespace);
+      /**
+       * 解析缓存引用
+       * 关键类 org.apache.ibatis.builder.CacheRefResolver
+       * 添加缓存引用关系,获取到缓存配置
+       * 若为能解析成功，则加入至未完成解析标签列表，待后续再次处理
+       */
       cacheRefElement(context.evalNode("cache-ref"));
+      /**
+       * 解析自有的缓存配置
+       */
       cacheElement(context.evalNode("cache"));
+      /**
+       * 参数映射,后期会废弃
+       */
       parameterMapElement(context.evalNodes("/mapper/parameterMap"));
+      /**
+       * 结果集映射
+       */
       resultMapElements(context.evalNodes("/mapper/resultMap"));
+      /**
+       * 处理 sql 语句
+       */
       sqlElement(context.evalNodes("/mapper/sql"));
+      /**
+       * 处理 select insert update delete 语句
+       */
       buildStatementFromContext(context.evalNodes("select|insert|update|delete"));
     } catch (Exception e) {
       throw new BuilderException("Error parsing Mapper XML. The XML location is '" + resource + "'. Cause: " + e, e);
     }
   }
 
+  /**
+   * 处理增删改查语句
+   * @see XMLStatementBuilder
+   * @param list
+   */
   private void buildStatementFromContext(List<XNode> list) {
     if (configuration.getDatabaseId() != null) {
       buildStatementFromContext(list, configuration.getDatabaseId());
@@ -152,6 +178,9 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 处理未完成的结果集映射
+   */
   private void parsePendingResultMaps() {
     Collection<ResultMapResolver> incompleteResultMaps = configuration.getIncompleteResultMaps();
     synchronized (incompleteResultMaps) {
@@ -167,6 +196,9 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 处理未完成的缓存引用
+   */
   private void parsePendingCacheRefs() {
     Collection<CacheRefResolver> incompleteCacheRefs = configuration.getIncompleteCacheRefs();
     synchronized (incompleteCacheRefs) {
@@ -182,6 +214,9 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 处理未完成的语句解析
+   */
   private void parsePendingStatements() {
     Collection<XMLStatementBuilder> incompleteStatements = configuration.getIncompleteStatements();
     synchronized (incompleteStatements) {
@@ -197,8 +232,13 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 缓存引用节点解析
+   * @param context
+   */
   private void cacheRefElement(XNode context) {
     if (context != null) {
+      //记录缓存引用关系
       configuration.addCacheRef(builderAssistant.getCurrentNamespace(), context.getStringAttribute("namespace"));
       CacheRefResolver cacheRefResolver = new CacheRefResolver(builderAssistant, context.getStringAttribute("namespace"));
       try {
@@ -209,21 +249,50 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 解析缓存节点
+   * @param context
+   * @throws Exception
+   */
   private void cacheElement(XNode context) throws Exception {
     if (context != null) {
+      // 缓存实现 ,可使用别名
       String type = context.getStringAttribute("type", "PERPETUAL");
       Class<? extends Cache> typeClass = typeAliasRegistry.resolveAlias(type);
+      // 缓存淘汰策略
       String eviction = context.getStringAttribute("eviction", "LRU");
       Class<? extends Cache> evictionClass = typeAliasRegistry.resolveAlias(eviction);
+      // 刷新间隔 属性可以被设置为任意的正整数，设置的值应该是一个以毫秒为单位的合理时间量。 默认情况是不设置，也就是没有刷新间隔，缓存仅仅会在调用语句时刷新。
       Long flushInterval = context.getLongAttribute("flushInterval");
+      // （引用数目）属性可以被设置为任意正整数，要注意欲缓存对象的大小和运行环境中可用的内存资源。默认值是 1024。
       Integer size = context.getIntAttribute("size");
+      /**
+       * （只读）属性可以被设置为 true 或 false。只读的缓存会给所有调用者返回缓存对象的相同实例。 因此这些对象不能被修改。这就提供了可观的性能提升。
+       * 而可读写的缓存会（通过序列化）返回缓存对象的拷贝。 速度上会慢一些，但是更安全，因此默认值是 false。
+       */
       boolean readWrite = !context.getBooleanAttribute("readOnly", false);
+      /**
+       * 防止多线程缓存穿透访问数据库
+       */
       boolean blocking = context.getBooleanAttribute("blocking", false);
       Properties props = context.getChildrenAsProperties();
       builderAssistant.useNewCache(typeClass, evictionClass, flushInterval, size, readWrite, blocking, props);
     }
   }
 
+  /**
+   * <parameterMap id="" type="">
+   *     <parameter property="" javaType="" jdbcType="" resultMap="" mode="" typeHandler="" numericScale=""></parameter>
+   * </parameterMap>
+   * @see ParameterMapping
+   * @see org.apache.ibatis.mapping.ParameterMap
+   * @see ParameterMapping.Builder
+   * @see org.apache.ibatis.mapping.ParameterMap.Builder
+   *
+   * builder一般为类的静态内部类，且加载时自动初始化类的一个实例
+   * @param list
+   * @throws Exception
+   */
   private void parameterMapElement(List<XNode> list) throws Exception {
     for (XNode parameterMapNode : list) {
       String id = parameterMapNode.getStringAttribute("id");
@@ -251,6 +320,11 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 结果集映射节点处理
+   * @param list
+   * @throws Exception
+   */
   private void resultMapElements(List<XNode> list) throws Exception {
     for (XNode resultMapNode : list) {
       try {
@@ -265,15 +339,42 @@ public class XMLMapperBuilder extends BaseBuilder {
     return resultMapElement(resultMapNode, Collections.<ResultMapping> emptyList());
   }
 
+  /**
+   * constructor - 用于在实例化类时，注入结果到构造方法中
+   *   idArg - ID 参数；标记出作为 ID 的结果可以帮助提高整体性能
+   *   arg - 将被注入到构造方法的一个普通结果
+   * id – 一个 ID 结果；标记出作为 ID 的结果可以帮助提高整体性能
+   * result – 注入到字段或 JavaBean 属性的普通结果
+   * association – 一个复杂类型的关联；许多结果将包装成这种类型
+   *   嵌套结果映射 – 关联本身可以是一个 resultMap 元素，或者从别处引用一个
+   * collection – 一个复杂类型的集合
+   *   嵌套结果映射 – 集合本身可以是一个 resultMap 元素，或者从别处引用一个
+   * discriminator – 使用结果值来决定使用哪个 resultMap
+   *   case – 基于某些值的结果映射
+   *     嵌套结果映射 – case 本身可以是一个 resultMap 元素，因此可以具有相同的结构和元素，或者从别处引用一个
+   *
+   * @see ResultMap
+   * @see ResultMapping
+   * @see ResultMapping.Builder
+   * @param resultMapNode
+   * @param additionalResultMappings
+   * @return
+   * @throws Exception
+   */
   private ResultMap resultMapElement(XNode resultMapNode, List<ResultMapping> additionalResultMappings) throws Exception {
+    // 初始化错误上下文 mapper[xyz]_resultMap[xyz]
     ErrorContext.instance().activity("processing " + resultMapNode.getValueBasedIdentifier());
+    // 获取唯一标识 id > value > property     id 属性
     String id = resultMapNode.getStringAttribute("id",
         resultMapNode.getValueBasedIdentifier());
+    // 结果type属性 可以是类的一个别名
     String type = resultMapNode.getStringAttribute("type",
         resultMapNode.getStringAttribute("ofType",
             resultMapNode.getStringAttribute("resultType",
                 resultMapNode.getStringAttribute("javaType"))));
+    // 继承 另外一个
     String extend = resultMapNode.getStringAttribute("extends");
+    //如果设置这个属性，MyBatis将会为本结果映射开启或者关闭自动映射。 这个属性会覆盖全局的属性 autoMappingBehavior。默认值：未设置（unset）
     Boolean autoMapping = resultMapNode.getBooleanAttribute("autoMapping");
     Class<?> typeClass = resolveClass(type);
     Discriminator discriminator = null;
@@ -302,6 +403,15 @@ public class XMLMapperBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   *   <constructor>
+   *     <idArg column="blog_id" javaType="int"/>
+   *   </constructor>
+   * @param resultChild
+   * @param resultType
+   * @param resultMappings
+   * @throws Exception
+   */
   private void processConstructorElement(XNode resultChild, Class<?> resultType, List<ResultMapping> resultMappings) throws Exception {
     List<XNode> argChildren = resultChild.getChildren();
     for (XNode argChild : argChildren) {
@@ -326,12 +436,18 @@ public class XMLMapperBuilder extends BaseBuilder {
     Map<String, String> discriminatorMap = new HashMap<>();
     for (XNode caseChild : context.getChildren()) {
       String value = caseChild.getStringAttribute("value");
+      // 可以引用其他的resultMap，case 本身可以是一个 resultMap 元素，因此可以具有相同的结构和元素，
       String resultMap = caseChild.getStringAttribute("resultMap", processNestedResultMappings(caseChild, resultMappings));
       discriminatorMap.put(value, resultMap);
     }
     return builderAssistant.buildDiscriminator(resultType, column, javaTypeClass, jdbcTypeEnum, typeHandlerClass, discriminatorMap);
   }
 
+  /**
+   * 会特殊处理 databaseId
+   * @param list
+   * @throws Exception
+   */
   private void sqlElement(List<XNode> list) throws Exception {
     if (configuration.getDatabaseId() != null) {
       sqlElement(list, configuration.getDatabaseId());
@@ -344,6 +460,13 @@ public class XMLMapperBuilder extends BaseBuilder {
       String databaseId = context.getStringAttribute("databaseId");
       String id = context.getStringAttribute("id");
       id = builderAssistant.applyCurrentNamespace(id, false);
+      // 处理dataBaseId
+      /**
+       * 如果配置中带有databaseId, 则只有sql上带有同样的databaseId 才可以录用。 否则
+       * sql上带有databaseId ,不录用。否则
+       * 同名的sql， 带有databaseId的优先于不带dataBasId的
+       *
+       */
       if (databaseIdMatchesCurrent(id, databaseId, requiredDatabaseId)) {
         sqlFragments.put(id, context);
       }

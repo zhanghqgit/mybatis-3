@@ -85,6 +85,7 @@ public class XMLStatementBuilder extends BaseBuilder {
 
     // Include Fragments before parsing
     XMLIncludeTransformer includeParser = new XMLIncludeTransformer(configuration, builderAssistant);
+    // 处理 include 标签
     includeParser.applyIncludes(context.getNode());
 
     // Parse selectKey after includes and remove them.
@@ -131,6 +132,14 @@ public class XMLStatementBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 处理 插入语句中使用的 selectKey标签 ， 用于生成主键
+   * @param id
+   * @param nodeToHandle
+   * @param parameterTypeClass
+   * @param langDriver
+   * @param databaseId
+   */
   private void parseSelectKeyNode(String id, XNode nodeToHandle, Class<?> parameterTypeClass, LanguageDriver langDriver, String databaseId) {
     String resultType = nodeToHandle.getStringAttribute("resultType");
     Class<?> resultTypeClass = resolveClass(resultType);
@@ -170,6 +179,13 @@ public class XMLStatementBuilder extends BaseBuilder {
     }
   }
 
+  /**
+   * 重复 {@link XMLMapperBuilder#databaseIdMatchesCurrent(java.lang.String, java.lang.String, java.lang.String)}
+   * @param id
+   * @param databaseId
+   * @param requiredDatabaseId
+   * @return
+   */
   private boolean databaseIdMatchesCurrent(String id, String databaseId, String requiredDatabaseId) {
     if (requiredDatabaseId != null) {
       if (!requiredDatabaseId.equals(databaseId)) {

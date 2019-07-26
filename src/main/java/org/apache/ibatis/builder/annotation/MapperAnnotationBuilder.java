@@ -134,6 +134,7 @@ public class MapperAnnotationBuilder {
       parseCache();
       // 处理缓存注解 org.apache.ibatis.annotations.CacheNamespaceRef
       parseCacheRef();
+      // 处理所有的方法
       Method[] methods = type.getMethods();
       for (Method method : methods) {
         try {
@@ -152,6 +153,10 @@ public class MapperAnnotationBuilder {
     parsePendingMethods();
   }
 
+  /**
+   * 处理暂存的解析失败的方法
+   * @see MethodResolver
+   */
   private void parsePendingMethods() {
     Collection<MethodResolver> incompleteMethods = configuration.getIncompleteMethods();
     synchronized (incompleteMethods) {
@@ -167,6 +172,10 @@ public class MapperAnnotationBuilder {
     }
   }
 
+  /**
+   * 根据接口名自动寻找相关的xml配置，解析xml配置文件
+   * @see XMLMapperBuilder
+   */
   private void loadXmlResource() {
     // Spring may not know the real resource name so we check a flag
     // to prevent loading again a resource twice
@@ -192,6 +201,10 @@ public class MapperAnnotationBuilder {
     }
   }
 
+  /**
+   * 处理 缓存注解
+   * @see CacheNamespace
+   */
   private void parseCache() {
     CacheNamespace cacheDomain = type.getAnnotation(CacheNamespace.class);
     if (cacheDomain != null) {
@@ -214,6 +227,10 @@ public class MapperAnnotationBuilder {
     return props;
   }
 
+  /**
+   * 处理 缓存引用注解
+   * @see CacheNamespaceRef
+   */
   private void parseCacheRef() {
     CacheNamespaceRef cacheDomainRef = type.getAnnotation(CacheNamespaceRef.class);
     if (cacheDomainRef != null) {
@@ -230,6 +247,11 @@ public class MapperAnnotationBuilder {
     }
   }
 
+  /**
+   * 处理结果集映射注解
+   * @param method
+   * @return
+   */
   private String parseResultMap(Method method) {
     Class<?> returnType = getReturnType(method);
     ConstructorArgs args = method.getAnnotation(ConstructorArgs.class);
@@ -301,8 +323,11 @@ public class MapperAnnotationBuilder {
   }
 
   void parseStatement(Method method) {
+    // 处理参数类型 单个参数： 原始的参数类型  多参数： 内置的参数map
     Class<?> parameterTypeClass = getParameterType(method);
+    // Lang 注解
     LanguageDriver languageDriver = getLanguageDriver(method);
+    // 解析出SQL
     SqlSource sqlSource = getSqlSourceFromAnnotations(method, parameterTypeClass, languageDriver);
     if (sqlSource != null) {
       Options options = method.getAnnotation(Options.class);
@@ -406,11 +431,12 @@ public class MapperAnnotationBuilder {
     Class<?> parameterType = null;
     Class<?>[] parameterTypes = method.getParameterTypes();
     for (Class<?> currentParameterType : parameterTypes) {
+      // 过滤分页参数和结果集处理参数
       if (!RowBounds.class.isAssignableFrom(currentParameterType) && !ResultHandler.class.isAssignableFrom(currentParameterType)) {
         if (parameterType == null) {
           parameterType = currentParameterType;
         } else {
-          // issue #135
+          // issue #135 支持多参数
           parameterType = ParamMap.class;
         }
       }

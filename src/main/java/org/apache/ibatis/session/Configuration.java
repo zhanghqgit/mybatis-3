@@ -328,6 +328,9 @@ public class Configuration {
    * 暂存未能正确解析的结果集映射引用
    */
   protected final Collection<ResultMapResolver> incompleteResultMaps = new LinkedList<>();
+  /**
+   * 暂存未能正确解析的mapper方法
+   */
   protected final Collection<MethodResolver> incompleteMethods = new LinkedList<>();
 
   /**

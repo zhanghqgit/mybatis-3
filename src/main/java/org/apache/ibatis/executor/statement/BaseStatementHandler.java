@@ -90,6 +90,7 @@ public abstract class BaseStatementHandler implements StatementHandler {
       setFetchSize(statement);
       return statement;
     } catch (SQLException e) {
+      // 不包装 java.sql exception异常
       closeStatement(statement);
       throw e;
     } catch (Exception e) {

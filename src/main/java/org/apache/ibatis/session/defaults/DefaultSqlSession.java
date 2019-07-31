@@ -49,8 +49,13 @@ import org.apache.ibatis.session.SqlSession;
 public class DefaultSqlSession implements SqlSession {
 
   private final Configuration configuration;
+  /**
+   * 实际执行者
+   */
   private final Executor executor;
-
+  /**
+   * 自动提交
+   */
   private final boolean autoCommit;
   private boolean dirty;
   private List<Cursor<?>> cursorList;
@@ -66,6 +71,12 @@ public class DefaultSqlSession implements SqlSession {
     this(configuration, executor, false);
   }
 
+  /**
+   * 未查询到结果 返回空
+   * @param statement
+   * @param <T>
+   * @return
+   */
   @Override
   public <T> T selectOne(String statement) {
     return this.<T>selectOne(statement, null);
@@ -141,6 +152,14 @@ public class DefaultSqlSession implements SqlSession {
     return this.selectList(statement, parameter, RowBounds.DEFAULT);
   }
 
+  /**
+   *
+   * @param statement Unique identifier matching the statement to use.
+   * @param parameter A parameter object to pass to the statement.
+   * @param rowBounds  Bounds to limit object retrieval
+   * @param <E>
+   * @return
+   */
   @Override
   public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
     try {

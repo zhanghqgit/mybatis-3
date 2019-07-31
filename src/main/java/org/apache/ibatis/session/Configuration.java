@@ -756,9 +756,11 @@ public class Configuration {
     } else {
       executor = new SimpleExecutor(this, transaction);
     }
+    // 装饰器模式 同理可见 Cache 解析sql mapper文件的cache标签时 内置实现的cache运用了装饰器模式
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }
+    // 代理 对底层的执行器使用代理的方式实现插件管理
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }
@@ -897,6 +899,7 @@ public class Configuration {
 
   public MappedStatement getMappedStatement(String id, boolean validateIncompleteStatements) {
     if (validateIncompleteStatements) {
+      //再次处理未完成的解析
       buildAllStatements();
     }
     return mappedStatements.get(id);

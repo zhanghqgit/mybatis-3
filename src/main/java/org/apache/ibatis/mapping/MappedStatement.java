@@ -36,25 +36,90 @@ public final class MappedStatement {
   private String resource;
   private Configuration configuration;
   private String id;
+  /**
+   * 这是一个给驱动的提示，尝试让驱动程序每次批量返回的结果行数和这个设置值相等。 默认值为未设置（unset）（依赖驱动）。
+   */
   private Integer fetchSize;
+  /**
+   * 这个设置是在抛出异常之前，驱动程序等待数据库返回请求结果的秒数。默认值为未设置（unset）（依赖驱动）。
+   */
   private Integer timeout;
+  /**
+   * STATEMENT，PREPARED 或 CALLABLE 中的一个。这会让 MyBatis 分别使用 Statement，PreparedStatement 或 CallableStatement，默认值：PREPARED。
+   */
   private StatementType statementType;
+  /**
+   * FORWARD_ONLY，SCROLL_SENSITIVE, SCROLL_INSENSITIVE 或 DEFAULT（等价于 unset） 中的一个，默认值为 unset （依赖驱动）
+   */
   private ResultSetType resultSetType;
+  /**
+   * 原始SQL语句 未转换之前
+   */
   private SqlSource sqlSource;
+  /**
+   * 缓存
+   */
   private Cache cache;
+  /**
+   * 入参映射
+   */
   private ParameterMap parameterMap;
+  /**
+   * 结果集映射
+   */
   private List<ResultMap> resultMaps;
+
+  /**
+   * 将其设置为 true 后，只要语句被调用，都会导致本地缓存和二级缓存被清空，默认值：false。
+   */
   private boolean flushCacheRequired;
+  /**
+   * 使用缓存
+   * 将其设置为 true 后，将会导致本条语句的结果被二级缓存缓存起来，默认值：对 select 元素为 true。
+   */
   private boolean useCache;
+  /**
+   * 这个设置仅针对嵌套结果 select 语句适用：如果为 true，
+   * 就是假设包含了嵌套结果集或是分组，这样的话当返回一个主结果行的时候，就不会发生有对前面结果集的引用的情况。
+   * 这就使得在获取嵌套的结果集的时候不至于导致内存不够用。默认值：false。
+   */
   private boolean resultOrdered;
+  /**
+   * sql语句类型
+   */
   private SqlCommandType sqlCommandType;
+  /**
+   * 主键生成器
+   */
   private KeyGenerator keyGenerator;
+  /**
+   * 主键属性
+   * 用于 insert语句
+   */
   private String[] keyProperties;
+  /**
+   * 主键数据库字段
+   * 用于 insert语句
+   */
   private String[] keyColumns;
+  /**
+   * 嵌套结果集映射
+   */
   private boolean hasNestedResultMaps;
+  /**
+   * 如果配置了数据库厂商标识（databaseIdProvider），MyBatis 会加载所有的不带 databaseId
+   * 或匹配当前 databaseId 的语句；如果带或者不带的语句都有，则不带的会被忽略。
+   */
   private String databaseId;
   private Log statementLog;
+  /**
+   * 动态SQL类型 script  xml 等
+   */
   private LanguageDriver lang;
+  /**
+   * 这个设置仅对多结果集的情况适用。它将列出语句执行后返回的结果集并给每个结果集一个名称，名称是逗号分隔的。
+   * 需驱动支持
+   */
   private String[] resultSets;
 
   MappedStatement() {

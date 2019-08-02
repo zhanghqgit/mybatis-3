@@ -1,0 +1,89 @@
+@startuml
+title mybatis 执行语句相关类图
+
+
+class Configuration
+together {
+    interface SqlSessionFactory
+    class DefaultSqlSessionFactory
+    interface SqlSession
+    class DefaultSqlSession
+}
+
+SqlSessionFactory <|.. DefaultSqlSessionFactory
+Configuration o-- DefaultSqlSessionFactory
+DefaultSqlSession .up.|> SqlSession
+Configuration o-- DefaultSqlSession
+
+together {
+    interface Executor
+    class BaseExecutor {
+        # Transaction transaction;
+        # Executor wrapper;
+
+        # ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
+        # PerpetualCache localCache;
+        # PerpetualCache localOutputParameterCache;
+        # Configuration configuration;
+
+        # int queryStack;
+        - boolean closed;
+    }
+    class BatchExecutor
+    class CachingExecutor
+    class ReuseExecutor
+    class SimpleExecutor
+}
+
+
+
+BaseExecutor .up.|> Executor
+CachingExecutor .up.|> Executor
+BatchExecutor -up-|> BaseExecutor
+ReuseExecutor -up-|> BaseExecutor
+SimpleExecutor -up-|> BaseExecutor
+
+DefaultSqlSession .right.* Executor
+BaseExecutor --o Configuration
+CachingExecutor --o Configuration
+
+together {
+    interface Cache 
+    class PerpetualCache
+    class ScheduledCache
+    class WeakCache
+    class BlockingCache
+    class FifoCache
+    class TransactionalCache
+    class SerializedCache
+    class LoggingCache
+    class LruCache
+    class SoftCache
+}
+
+together {
+    interface Transaction
+    class JdbcTransaction {
+        # Connection connection;
+        # DataSource dataSource;
+        # TransactionIsolationLevel level;
+        # boolean autoCommit;
+    }
+    class ManagedTransaction
+}
+
+PerpetualCache -up-|> Cache
+ScheduledCache -up-|> Cache
+WeakCache -up-|> Cache
+BlockingCache -up-|> Cache
+FifoCache -up-|> Cache
+TransactionalCache -up-|> Cache
+SerializedCache -up-|> Cache
+LoggingCache -up-|> Cache
+LruCache -up-|> Cache
+SoftCache -up-|> Cache
+
+BaseExecutor --o PerpetualCache
+BaseExecutor --o Transaction
+
+@enduml

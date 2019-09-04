@@ -1,0 +1,95 @@
+@startuml
+
+title 类图
+
+together {
+    interface Executor
+    class BaseExecutor
+    class SimpleExecutor
+}
+
+class PerpetualCache
+interface Transaction
+class Configuration
+
+BaseExecutor .up.|> Executor
+SimpleExecutor -up-|> BaseExecutor
+
+BaseExecutor --* Transaction
+BaseExecutor --* PerpetualCache
+BaseExecutor --* Configuration
+
+together {
+    interface ResultHandler
+    class DefaultResultHandler
+}
+
+DefaultResultHandler .up.|> ResultHandler
+
+together {
+    interface StatementHandler
+    abstract class BaseStatementHandler {
+        # Configuration configuration
+        # ObjectFactory objectFactory
+        # TypeHandlerRegistry typeHandlerRegistry
+        # ResultSetHandler resultSetHandler
+        # ParameterHandler parameterHandler
+        # Executor  executor
+        # MappedStatement mappedStatement
+        # RowBounds rowBounds
+        # BoundSql boundSql
+    }
+    class PreparedStatementHandler
+    class RoutingStatementHandler
+}
+
+BaseStatementHandler .up.|> StatementHandler
+RoutingStatementHandler .up.|> StatementHandler
+PreparedStatementHandler .up.|> BaseStatementHandler
+
+together {
+    interface ParameterHandler
+    class DefaultParameterHandler
+}
+
+DefaultParameterHandler .up.|> ParameterHandler
+
+together {
+    interface ResultSetHandler
+    class DefaultResultSetHandler {
+        - static final Object DEFERED = new Object();
+        ==
+        - final Executor executor;
+        - final Configuration configuration;
+        - final MappedStatement mappedStatement;
+        - final RowBounds rowBounds;
+        - final ParameterHandler parameterHandler;
+        - final ResultHandler<?> resultHandler;
+        - final BoundSql boundSql;
+        - final TypeHandlerRegistry typeHandlerRegistry;
+        - final ObjectFactory objectFactory;
+        - final ReflectorFactory reflectorFactory;
+        ==
+        - final Map<CacheKey, Object> nestedResultObjects = new HashMap<>();
+        - final Map<String, Object> ancestorObjects = new HashMap<>();
+        - Object previousRowValue;
+        ==
+        - final Map<String, ResultMapping> nextResultMaps = new HashMap<>();
+        - final Map<CacheKey, List<PendingRelation>> pendingRelations = new HashMap<>();
+        ==
+        - final Map<String, List<UnMappedColumnAutoMapping>> autoMappingsCache = new HashMap<>();
+        - boolean useConstructorMappings;
+    }
+}
+
+DefaultResultSetHandler .up.|> ResultSetHandler
+
+BaseStatementHandler ..* ResultSetHandler
+BaseStatementHandler ..* ParameterHandler
+BaseStatementHandler .right.* Executor
+
+DefaultResultSetHandler ..* ResultHandler
+
+
+
+@enduml

@@ -1,0 +1,38 @@
+@startuml
+
+title org.apache.ibatis.executor.BaseExecutor#query(org.apache.ibatis.mapping.MappedStatement, java.lang.Object, org.apache.ibatis.session.RowBounds, org.apache.ibatis.session.ResultHandler, org.apache.ibatis.cache.CacheKey, org.apache.ibatis.mapping.BoundSql)
+
+
+
+participant BaseExecutor
+participant localCache<<PerpetualCache>>
+
+alt 清理缓存 case 
+
+    BaseExecutor -> BaseExecutor : clearLocalCache
+
+end
+
+alt resultHandler.isNull case 
+    BaseExecutor -> localCache : 根据key获取缓存结果
+end
+
+alt 缓存结果为空 case 
+    BaseExecutor -> BaseExecutor : queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql)
+else 
+    BaseExecutor -> BaseExecutor : handleLocallyCachedOutputParameters
+end
+
+alt  queryStack == 0 case 
+    loop deferredLoads 
+        BaseExecutor -> BaseExecutor : 处理延迟加载
+    end
+    BaseExecutor -> BaseExecutor : deferredLoads.clear()
+
+    alt 缓存级别为语句级别 case 
+        BaseExecutor -> BaseExecutor : clearLocalCache
+    end 
+    
+end
+
+@enduml

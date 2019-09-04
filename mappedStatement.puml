@@ -1,0 +1,110 @@
+@startuml 
+
+title MappedStatement
+
+class MappedStatement {
+    - String resource;
+    - Configuration configuration;
+    - String id;
+    - Integer fetchSize;
+    - Integer timeout;
+    - StatementType statementType;
+    - ResultSetType resultSetType;
+    - SqlSource sqlSource;
+    - Cache cache;
+    - ParameterMap parameterMap;
+    - List<ResultMap> resultMaps;
+    - boolean flushCacheRequired;
+    - boolean useCache;
+    - boolean resultOrdered;
+    - SqlCommandType sqlCommandType;
+    - KeyGenerator keyGenerator;
+    - String[] keyProperties;
+    - String[] keyColumns;
+    - boolean hasNestedResultMaps;
+    - String databaseId;
+    - Log statementLog;
+    - LanguageDriver lang;
+    - String[] resultSets;
+}
+
+note top of MappedStatement : 解析XML后得到的语句映射对象
+class Configuration
+enum StatementType {
+    STATEMENT
+    PREPARED
+    CALLABLE
+}
+enum ResultSetType{
+    DEFAULT
+    FORWARD_ONLY
+    SCROLL_INSENSITIVE
+    SCROLL_SENSITIVE
+}
+enum SqlCommandType{
+    UNKNOWN
+    INSERT
+    UPDATE
+    DELETE
+    SELECT
+    FLUSH
+}
+together {
+    interface KeyGenerator
+    class Jdbc3KeyGenerator
+    class NoKeyGenerator
+    class SelectKeyGenerator
+}
+Jdbc3KeyGenerator .up.|> KeyGenerator
+NoKeyGenerator .up.|> KeyGenerator
+SelectKeyGenerator .up.|> KeyGenerator
+
+together {
+    interface LanguageDriver
+    class RawLanguageDriver
+    class XMLLanguageDriver
+    class VelocityLanguageDriver
+}
+XMLLanguageDriver .up.|> LanguageDriver
+RawLanguageDriver -up-|> XMLLanguageDriver
+VelocityLanguageDriver .up.|> LanguageDriver
+
+together {
+    interface SqlSource
+    class DynamicSqlSource
+    class ProviderSqlSource
+    class RawSqlSource
+    class StaticSqlSource
+}
+
+DynamicSqlSource .up.|> SqlSource
+ProviderSqlSource .up.|> SqlSource
+RawSqlSource .up.|> SqlSource
+StaticSqlSource .up.|> SqlSource
+
+class ResultMap
+class ResultMapping
+ResultMap --* ResultMapping
+
+class ParameterMap
+class ParameterMapping
+ParameterMap --* ParameterMapping
+
+together {
+    MappedStatement --o Configuration
+    MappedStatement --o StatementType
+    MappedStatement --o ResultSetType
+    MappedStatement --o SqlCommandType
+}
+
+MappedStatement --* SqlSource
+
+together {
+    MappedStatement --* ParameterMap
+    MappedStatement --* ResultMap
+    MappedStatement --* KeyGenerator
+    MappedStatement --* LanguageDriver
+}
+
+
+@enduml

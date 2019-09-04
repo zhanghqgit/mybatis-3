@@ -1,0 +1,24 @@
+@startuml
+
+title org.apache.ibatis.session.defaults.DefaultSqlSession#selectList(java.lang.String, java.lang.Object, org.apache.ibatis.session.RowBounds)
+legend 
+主要执行者为Executor
+end legend
+
+actor DefaultSqlSession
+participant Executor
+note over of Executor 
+默认为SimpleExecutor,在于创建Session时传入的Executor实现
+end note
+participant MappedStatement
+
+
+DefaultSqlSession -> Executor : query(ms,parameter,rowbounds,resultHandler)
+Executor -> MappedStatement : getBoundSql
+MappedStatement --> Executor : BoundSql
+Executor -> Executor : createCacheKey
+Executor -> Executor : query(ms, parameter, rowbounds, resultHandler, cacheKey, boundSql)
+Executor --> DefaultSqlSession : List<E>
+
+
+@enduml

@@ -44,7 +44,7 @@ public abstract class BaseStatementHandler implements StatementHandler {
   protected final ResultSetHandler resultSetHandler;
   protected final ParameterHandler parameterHandler;
 
-  protected final Executor executor;
+  protected final Executor  executor;
   protected final MappedStatement mappedStatement;
   protected final RowBounds rowBounds;
 
@@ -101,6 +101,13 @@ public abstract class BaseStatementHandler implements StatementHandler {
 
   protected abstract Statement instantiateStatement(Connection connection) throws SQLException;
 
+  /**
+   * 设置语句超时时间
+   * 优先使用语句上配置的超时时间，若无显示配置则使用默认的全局超时时间配置
+   * @param stmt
+   * @param transactionTimeout
+   * @throws SQLException
+   */
   protected void setStatementTimeout(Statement stmt, Integer transactionTimeout) throws SQLException {
     Integer queryTimeout = null;
     if (mappedStatement.getTimeout() != null) {
@@ -115,11 +122,13 @@ public abstract class BaseStatementHandler implements StatementHandler {
   }
 
   protected void setFetchSize(Statement stmt) throws SQLException {
+    //SQL语句上的配置优先
     Integer fetchSize = mappedStatement.getFetchSize();
     if (fetchSize != null) {
       stmt.setFetchSize(fetchSize);
       return;
     }
+    // 使用默认的配置
     Integer defaultFetchSize = configuration.getDefaultFetchSize();
     if (defaultFetchSize != null) {
       stmt.setFetchSize(defaultFetchSize);

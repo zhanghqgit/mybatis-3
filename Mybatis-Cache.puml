@@ -1,0 +1,28 @@
+@startuml
+
+title mybatis 缓存
+
+interface Cache 
+class PerpetualCache
+class ScheduledCache
+class WeakCache
+class BlockingCache
+class FifoCache
+class TransactionalCache
+class SerializedCache
+class LoggingCache
+class LruCache
+class SoftCache
+
+PerpetualCache .up.> Cache
+ScheduledCache .up.> Cache
+WeakCache .up.> Cache
+BlockingCache .up.> Cache
+FifoCache .up.> Cache
+TransactionalCache .up.> Cache
+SerializedCache .up.> Cache
+LoggingCache .up.> Cache
+LruCache .up.> Cache
+SoftCache .up.> Cache
+
+@enduml

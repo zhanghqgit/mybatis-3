@@ -1,0 +1,46 @@
+@startuml
+
+title queryFromDatabase(ms, parameter, rowBounds, resultHandler, key, boundSql)
+
+
+
+participant SimpleExecutor
+participant MappedStatement
+participant Configuration
+participant StatementHandler
+participant RoutingStatementHandler
+participant InterceptorChain
+participant Transaction
+participant ConnectionLogger
+participant ParameterHandler
+
+SimpleExecutor -> MappedStatement : getConfiguration
+SimpleExecutor -> Configuration : newStatementHandler(wrapper, ms, parameter, rowBounds, resultHandler, boundSql)
+Configuration -> RoutingStatementHandler : new, 根据ms的statementType创建不同的statementHandler
+Configuration -> InterceptorChain : pluginAll, 插件代理
+Configuration --> SimpleExecutor : 返回一个 StatementHandler
+|||
+|||
+|||
+SimpleExecutor -> SimpleExecutor : prepareStatement,创建Statement
+group prepareStatement
+    SimpleExecutor -> Transaction : getConnection
+    alt 日志debug级别 case 
+        SimpleExecutor -> ConnectionLogger : 代理Connection，可创建带有日志的statement
+    end
+    SimpleExecutor -> StatementHandler : prepare
+    StatementHandler -> StatementHandler : instantiateStatement,子类自行实现
+    StatementHandler -> StatementHandler : setStatementTimeout，设置语句超时时间，语句级别、全局设置、事务超时时间
+    StatementHandler -> StatementHandler : setFetchSize，语句级别、全局设置
+    StatementHandler -> SimpleExecutor : statement
+    SimpleExecutor -> StatementHandler : parameterize
+    StatementHandler -> ParameterHandler : setParameters
+end
+|||
+|||
+|||
+SimpleExecutor -> StatementHandler : query
+StatementHandler --> SimpleExecutor : 返回查询结果
+
+
+@enduml

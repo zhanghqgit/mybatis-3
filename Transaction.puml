@@ -1,0 +1,46 @@
+@startuml
+
+title mybatis 事务管理器
+
+note as N1
+    虚线空心箭头代表 实现
+    虚线实心箭头带条 关联
+end note
+
+interface Transaction {
+    Connection getConnection() throws SQLException
+    void commit() throws SQLException
+    void rollback() throws SQLException
+    void close() throws SQLException
+    Integer getTimeout() throws SQLException
+}
+class JdbcTransaction {
+    # Connection connection;
+    # DataSource dataSource;
+    # TransactionIsolationLevel level;
+    # boolean autoCommit;
+}
+class ManagedTransaction
+
+interface TransactionFactory{
+    void setProperties(Properties props)
+    Transaction newTransaction(Connection conn)
+    Transaction newTransaction(DataSource dataSource, TransactionIsolationLevel level, boolean autoCommit)
+}
+
+class ManagedTransactionFactory
+class JdbcTransactionFactory
+
+ManagedTransactionFactory .up.|> TransactionFactory
+JdbcTransactionFactory .up.|> TransactionFactory
+
+TransactionFactory ..> Transaction
+ManagedTransactionFactory ..> ManagedTransaction
+JdbcTransactionFactory ..> JdbcTransaction
+
+
+JdbcTransaction .up.|> Transaction
+ManagedTransaction .up.|> Transaction
+
+
+@enduml

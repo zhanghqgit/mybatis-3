@@ -760,7 +760,7 @@ public class Configuration {
     if (cacheEnabled) {
       executor = new CachingExecutor(executor);
     }
-    // 代理 对底层的执行器使用代理的方式实现插件管理
+    // 代理 对底层的执行器使用代理的方式实现插件管理,多层代理
     executor = (Executor) interceptorChain.pluginAll(executor);
     return executor;
   }

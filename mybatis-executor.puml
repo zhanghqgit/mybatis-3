@@ -1,0 +1,37 @@
+@startuml
+
+title mybatis Executor
+
+legend
+执行器，借用了装饰器模式，实现更多特性，仅限于CacheingExecutor
+end legend
+
+interface Executor
+class BaseExecutor {
+    # Transaction transaction;
+    # Executor wrapper;
+
+    # ConcurrentLinkedQueue<DeferredLoad> deferredLoads;
+    # PerpetualCache localCache;
+    # PerpetualCache localOutputParameterCache;
+    # Configuration configuration;
+
+    # int queryStack;
+    - boolean closed;
+}
+class BatchExecutor
+class CachingExecutor
+class ReuseExecutor
+class SimpleExecutor
+
+
+
+BaseExecutor .up.|> Executor
+CachingExecutor .up.|> Executor
+BatchExecutor -up-|> BaseExecutor
+ReuseExecutor -up-|> BaseExecutor
+SimpleExecutor -up-|> BaseExecutor
+
+
+
+@enduml

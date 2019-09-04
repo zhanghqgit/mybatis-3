@@ -1,0 +1,32 @@
+@startuml
+
+title 创建DefaultSqlSession时序图
+
+legend
+org.apache.ibatis.session.defaults.DefaultSqlSessionFactory#openSessionFromDataSource
+end legend
+
+participant DefaultSqlSessionFactory
+participant Configuration
+participant TransactionFactory
+participant Transaction
+participant Executor
+participant DefaultSqlSession
+participant InterceptorChain
+
+DefaultSqlSessionFactory -> DefaultSqlSessionFactory : getTransactionFactoryFromEnvironment
+DefaultSqlSessionFactory -> TransactionFactory : newTransaction
+TransactionFactory --> DefaultSqlSessionFactory : Transaction
+
+DefaultSqlSessionFactory -> Configuration : newExecutor
+Configuration -> InterceptorChain : pluginAll 装饰执行器所有的插件
+InterceptorChain --> Configuration : Executor 返回装饰后的执行器
+Configuration --> DefaultSqlSessionFactory : Executor
+
+DefaultSqlSessionFactory -> DefaultSqlSession : new
+DefaultSqlSession --> DefaultSqlSessionFactory : DefaultSqlSession
+
+
+
+
+@enduml
